@@ -11,7 +11,7 @@ env:
 jobs:
 
   test:
-    uses: ./.github/worfklows/test.yml
+    uses: ./.github/worfklows/test.yml@main
 
   build:
     runs-on: ubuntu-latest
