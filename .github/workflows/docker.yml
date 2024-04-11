@@ -10,13 +10,13 @@ env:
 
 jobs:
 
-  lint-test:
+  test:
     uses: ./.github/worfklows/test.yml
 
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [lint-test]
+    needs: [test]
     permissions:
       contents: read
       packages: write
