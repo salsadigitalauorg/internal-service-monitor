@@ -1,0 +1,21 @@
+FOMRAT: 1A
+
+# GET /monitor/webhooks
++ Response 200 (application/json; charset=utf-8)
+
+    {"message":"ok"}
+
+# GET /monitor/test
++ Response 400 (application/json; charset=utf-8)
+
+    {"message":"Status check failed","reasons":["Cannot connect to the database"]}
+
+# GET /monitor/notfound
++ Response 200 (application/json; charset=utf-8)
+
+    {"message":"ok"}
+
+# GET /monitor/httpav
++ Response 200 (application/json; charset=utf-8)
+
+    {"message":"ok"}

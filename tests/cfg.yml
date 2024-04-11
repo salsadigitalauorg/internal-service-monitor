@@ -1,0 +1,26 @@
+monitors:
+  - name: webhooks
+    url: http://localhost:8080/ping
+    type: http
+    expects:
+      - field: status
+        value: "200"
+      - field: status
+        value: "404"
+  - name: test
+    url: http://localhost:8080/test
+    type: http
+    expects:
+      - field: status
+        value: "200"
+  - name: notfound
+    url: http://localhost:8080/notfound
+    type: http
+    expects:
+      - field: status
+        value: "404"
+  - name: httpav
+    url: http://localhost:8080
+    type: tcp
+    expects:
+      - value: "ok"
