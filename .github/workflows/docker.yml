@@ -1,11 +1,8 @@
-name: Docker
+name: Build images
 
 on:
-  schedule:
-    - cron: '17 3 * * *'
   workflow_call: {}
   workflow_dispatch:
-
 
 env:
   REGISTRY: ghcr.io
@@ -13,22 +10,13 @@ env:
 
 jobs:
 
-  tests:
-    name: Test the monitor
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.22'
-      - name: Run tests
-        run: go test ./...
+  lint-test:
+    uses: ./.github/worfklows/test.yml
 
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: [lint-test]
     permissions:
       contents: read
       packages: write
