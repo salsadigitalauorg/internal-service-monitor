@@ -3,9 +3,7 @@ package expectations
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -55,7 +53,6 @@ func (h *Http) WithUrl(u string) Expectation {
 }
 
 func (h *Http) IsOK(c cfg.MonitorExpects) (bool, string) {
-	log.Printf("Value type %s", reflect.TypeOf(c.Value))
 	if c.Field == "status" {
 		if h.IsExpectedStatus(c.Value, c.Op) {
 			return true, ""
@@ -88,7 +85,7 @@ func (h *Http) HasHeaderWithValue(key string, value string, op string) bool {
 	header := h.Header.Get(key)
 
 	switch op {
-		case "Equal", "Eq":
+		case "Equal", "Eq", "":
 			return header == value
 		case "NotEqual", "Ne":
 			return header != value

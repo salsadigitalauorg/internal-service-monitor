@@ -19,30 +19,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-      - name: Install Dredd
-        run: npm install -g dredd
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: '1.22'
-      - name: Run the application
-        run: go run main.go &
-      - name: Wait for the server to start
-        run: |
-          timeout=30
-          while ! nc -z localhost 8080; do
-            echo "Waiting for server to start..."
-            sleep 1
-            ((timeout--))
-            if [ $timeout -eq 0 ]; then
-              echo "Timeout reached, server did not start."
-              exit 1
-            fi
-          done
-      - name: Run Dredd to test the API
-        run: dredd tests/monitor.apib http://localhost:8080
+      - name: Run tests
+        run: go test -v race ./...
 
   build:
     runs-on: ubuntu-latest

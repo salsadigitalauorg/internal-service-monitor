@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
@@ -13,6 +12,56 @@ import (
 	"github.com/salsadigitalauorg/internal-services-monitor/internal/expectations"
 	"gopkg.in/yaml.v3"
 )
+
+func SetupRoutes (r *gin.Engine, monitors []cfg.MonitorConfig) {
+	for _, monitor := range monitors {
+
+		r.GET("/monitor/"+monitor.Name, func(c *gin.Context) {
+			expectationsMet := false
+			var fails []string
+
+			var expectation expectations.Expectation
+			switch monitor.Type {
+				case "http":
+					expectation = &expectations.Http{}
+					expectation.WithUrl(monitor.Url)
+				case "tcp":
+					expectation = &expectations.Tcp{}
+					expectation.WithUrl(monitor.Url)
+				case "stub":
+					expectation = &expectations.Stub{}
+					expectation.WithUrl(monitor.Url)
+
+			}
+
+			for _, expects := range monitor.Expects {
+				ok, err := expectation.IsOK(expects)
+				if ok {
+					expectationsMet = true
+				} else {
+					if err != "" {
+						fails = append(fails, err)
+					} else {
+						fails = append(fails, fmt.Sprintf(
+							"Expected %s to be %s %s",
+							expects.Field,
+							expects.Op,
+							expects.Value,
+						))
+					}
+				}
+			}
+
+			if !expectationsMet {
+				c.JSON(http.StatusBadRequest, gin.H{"message": "Status check failed", "reasons": fails})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+	}
+
+}
 
 func main() {
 
@@ -51,51 +100,7 @@ func main() {
 		panic(err)
 	}
 
-  for _, monitor := range cfg.Monitors {
-
-		r.GET("/monitor/"+monitor.Name, func(c *gin.Context) {
-			expectationsMet := false
-			var fails []string
-
-			var expectation expectations.Expectation
-			switch monitor.Type {
-				case "http":
-					expectation = &expectations.Http{}
-					expectation.WithUrl(monitor.Url)
-				case "tcp":
-					log.Print("Using a TCP connection")
-					expectation = &expectations.Tcp{}
-					expectation.WithUrl(monitor.Url)
-			}
-
-			for _, expects := range monitor.Expects {
-				ok, err := expectation.IsOK(expects)
-				log.Printf("OK: %v, Err: %s", ok ,err)
-				if ok {
-					expectationsMet = true
-				} else {
-					if err != "" {
-						fails = append(fails, err)
-					} else {
-						fails = append(fails, fmt.Sprintf(
-							"Expected %s to be %s %s",
-							expects.Field,
-							expects.Op,
-							expects.Value,
-						))
-					}
-				}
-			}
-
-			if !expectationsMet {
-				c.JSON(http.StatusBadRequest, gin.H{"message": "Status check failed", "reasons": fails})
-				return
-			}
-
-			c.JSON(http.StatusOK, gin.H{"message": "ok"})
-		})
-	}
-
+	SetupRoutes(r, cfg.Monitors)
 
   r.Run(fmt.Sprintf(":%s", *port)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
