@@ -9,6 +9,8 @@ type MonitorConfig struct {
 	Url string `yaml:"url"`
 	Type string `yaml:"type"`
 	Heartbeat string `yaml:"heartbeat"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 	Expects []MonitorExpects `yaml:"expects"`
 	Failures []string `yaml:"failures"`
 }

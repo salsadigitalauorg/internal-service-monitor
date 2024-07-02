@@ -33,7 +33,8 @@ func TestSetupRoutes(t *testing.T) {
 	}
 
 	router := gin.Default()
-	SetupRoutes(router, monitors)
+	g := router.Group("/monitor")
+	SetupRoutes(g, monitors)
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()

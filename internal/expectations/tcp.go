@@ -36,6 +36,10 @@ func (t *Tcp) WithUrl(u string) Expectation {
 	return t
 }
 
+func (t *Tcp) WithAuth(u string, p string) Expectation {
+	return t
+}
+
 func (t *Tcp) IsOK(e cfg.MonitorExpects) (bool, string) {
 	dial, err := net.Dial("tcp", fmt.Sprintf("%s:%v", t.Url, t.Port))
 	if err != nil {

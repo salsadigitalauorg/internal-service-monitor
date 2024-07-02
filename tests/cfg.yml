@@ -1,6 +1,8 @@
 monitors:
   - name: webhooks
     url: http://localhost:8080/ping
+    username: test
+    password: test
     type: http
     expects:
       - field: status

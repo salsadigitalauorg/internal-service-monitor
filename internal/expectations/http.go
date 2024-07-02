@@ -1,6 +1,7 @@
 package expectations
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +15,8 @@ type Http struct {
 	Url string
 	Status int
 	Header http.Header
+	Username string
+	Password string
 	Body JsonBody
 	ResponseTime time.Duration
 	Error string
@@ -27,7 +30,14 @@ func (h *Http) WithUrl(u string) Expectation {
 	start := time.Now()
 	h.Url = u
 
-	res, err := http.Get(u)
+	req, _ := http.NewRequest("GET", h.Url, nil)
+	if h.Username != "" && h.Password != "" {
+		auth := base64.StdEncoding.EncodeToString([]byte(h.Username + ":" + h.Password))
+		req.Header.Add("Authorization", "Basic " + auth)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 
 	if err != nil {
 		return h
@@ -49,6 +59,12 @@ func (h *Http) WithUrl(u string) Expectation {
 	json.Unmarshal(body, &b)
 	h.Body = b
 
+	return h
+}
+
+func (h *Http) WithAuth(u string, p string) Expectation {
+	h.Username = u
+	h.Password = p
 	return h
 }
 
