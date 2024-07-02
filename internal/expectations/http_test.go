@@ -1,6 +1,7 @@
 package expectations_test
 
 import (
+	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -9,7 +10,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/salsadigitalauorg/internal-services-monitor/internal/cfg"
 	"github.com/salsadigitalauorg/internal-services-monitor/internal/expectations"
+	"github.com/stretchr/testify/assert"
 )
+
+func basicAuthMiddleware(t *testing.T, u string, p string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		auth := c.GetHeader("Authorization")
+		t.Logf(auth)
+		if auth == "" {
+			t.Logf("No auth header")
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		eu := base64.StdEncoding.EncodeToString([]byte(u+":"+p))
+		if auth != "Basic "+eu {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		c.Next()
+	}
+}
 
 func TestIsOK_StatusOK(t *testing.T) {
 
@@ -199,4 +220,24 @@ func TestIsOk_HeaderFail(t *testing.T) {
 	if msg != "header_mismatch" {
 		t.Errorf("Expected 'header_mismatch' got %s", msg)
 	}
+}
+
+func TestIsOk_BasicAuth(t *testing.T) {
+	r := gin.Default()
+	r.Use(basicAuthMiddleware(t, "test", "test"))
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	})
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	h := expectations.Http{}
+	h.WithAuth("test", "test").WithUrl(ts.URL)
+	c := cfg.MonitorExpects{
+		Field: "status",
+		Value: strconv.Itoa(http.StatusOK),
+	}
+
+	ok, _ := h.IsOK(c)
+	assert.True(t, ok)
 }

@@ -24,7 +24,9 @@ func SetupRoutes (r *gin.Engine, monitors []cfg.MonitorConfig) {
 			switch monitor.Type {
 				case "http":
 					expectation = &expectations.Http{}
-					expectation.WithUrl(monitor.Url)
+					if monitor.Username != "" && monitor.Password != "" {
+						expectation.WithAuth(monitor.Username, monitor.Password).WithUrl(monitor.Url)
+					}
 				case "tcp":
 					expectation = &expectations.Tcp{}
 					expectation.WithUrl(monitor.Url)
