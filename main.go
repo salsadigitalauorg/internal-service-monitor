@@ -26,6 +26,8 @@ func SetupRoutes (r *gin.RouterGroup, monitors []cfg.MonitorConfig) {
 					expectation = &expectations.Http{}
 					if monitor.Username != "" && monitor.Password != "" {
 						expectation.WithAuth(monitor.Username, monitor.Password).WithUrl(monitor.Url)
+					} else {
+						expectation.WithUrl(monitor.Url)
 					}
 				case "tcp":
 					expectation = &expectations.Tcp{}
