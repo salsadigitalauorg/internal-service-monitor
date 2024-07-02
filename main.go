@@ -13,10 +13,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func SetupRoutes (r *gin.Engine, monitors []cfg.MonitorConfig) {
+func SetupRoutes (r *gin.RouterGroup, monitors []cfg.MonitorConfig) {
 	for _, monitor := range monitors {
 
-		r.GET("/monitor/"+monitor.Name, func(c *gin.Context) {
+		r.GET(monitor.Name, func(c *gin.Context) {
 			expectationsMet := false
 			var fails []string
 
@@ -24,7 +24,9 @@ func SetupRoutes (r *gin.Engine, monitors []cfg.MonitorConfig) {
 			switch monitor.Type {
 				case "http":
 					expectation = &expectations.Http{}
-					expectation.WithUrl(monitor.Url)
+					if monitor.Username != "" && monitor.Password != "" {
+						expectation.WithAuth(monitor.Username, monitor.Password).WithUrl(monitor.Url)
+					}
 				case "tcp":
 					expectation = &expectations.Tcp{}
 					expectation.WithUrl(monitor.Url)
@@ -67,6 +69,8 @@ func main() {
 
 	config := flag.String("config", "cfg.yml", "Path to configuration file")
 	port := flag.String("port", "8080", "Port to start the application on")
+	username := flag.String("username", "", "Username for basic auth")
+	password := flag.String("password", "", "Password for basic auth")
 	flag.Parse()
 
 	if _, err := os.Stat(*config); os.IsNotExist(err) {
@@ -100,7 +104,15 @@ func main() {
 		panic(err)
 	}
 
-	SetupRoutes(r, cfg.Monitors)
+	var g *gin.RouterGroup
+
+	if *username != "" && *password != "" {
+		g = r.Group("/monitor", gin.BasicAuth(gin.Accounts{*username: *password}))
+	} else {
+		g = r.Group("/monitor")
+	}
+
+	SetupRoutes(g, cfg.Monitors)
 
   r.Run(fmt.Sprintf(":%s", *port)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
