@@ -2,6 +2,7 @@ package cfg
 
 type Config struct {
 	Monitors []MonitorConfig `yaml:"monitors"`
+	ResponseHeaders []ResponseHeaderConfig `yaml:"response_headers"`
 }
 
 type MonitorConfig struct {
@@ -18,5 +19,10 @@ type MonitorConfig struct {
 type MonitorExpects struct {
 	Field string `yaml:"field"`
 	Op string `yaml:"op"`
+	Value string `yaml:"value"`
+}
+
+type ResponseHeaderConfig struct {
+	Key string `yaml:"key"`
 	Value string `yaml:"value"`
 }

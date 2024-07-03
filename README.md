@@ -7,7 +7,15 @@ The intent for this application is provide HTTP endpoints that can be monitored 
 ## Usage
 
 ``` Bash
-docker run --rm -v $PWD/config.yml:/tmp/config.yml internal-service-monitor -- -config=/tmp/config.yml
+docker run --rm -v $PWD/config.yml:/tmp/config.yml internal-service-monitor -help
+-config string
+  	Path to configuration file (default "cfg.yml")
+-port string
+  	Port to start the application on (default "8080")
+-username string
+  	Username for basic auth
+-password string
+   	Password for basic auth
 ```
 
 ## Installation
@@ -23,6 +31,9 @@ go build -o monitor main.go
 ```
 3. Add a configuration file
 ``` yaml
+response_headers:
+- key: x-response-header
+  value: customvalue
 monitors:
   - name: webhooks
     url: http://localhost:8080/ping

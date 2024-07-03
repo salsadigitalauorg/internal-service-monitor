@@ -67,6 +67,16 @@ func SetupRoutes (r *gin.RouterGroup, monitors []cfg.MonitorConfig) {
 
 }
 
+func AddHeaders(config cfg.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if len(config.ResponseHeaders) > 0 {
+			for _, v := range config.ResponseHeaders {
+				c.Writer.Header().Set(v.Key, v.Value)
+			}
+		}
+	}
+}
+
 func main() {
 
 	config := flag.String("config", "cfg.yml", "Path to configuration file")
@@ -80,19 +90,6 @@ func main() {
 		return
 	}
 
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-		    "message": "pong",
-		})
-	})
-
-	r.GET("/test", func(c *gin.Context) {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Cannot connect to the database",
-		})
-	})
-
 	var cfg cfg.Config
 	f, err := ioutil.ReadFile(*config)
 
@@ -105,6 +102,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	r := gin.Default()
+
+	// Add headers to all responses.
+	r.Use(AddHeaders(cfg))
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+		    "message": "pong",
+		})
+	})
+
+	r.GET("/test", func(c *gin.Context) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Cannot connect to the database",
+		})
+	})
 
 	var g *gin.RouterGroup
 
